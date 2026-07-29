@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}История на теглото - {{ patient.name }} - VetPlus{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1><i class="bi bi-speedometer me-2"></i>История на теглото</h1>
+                <p class="text-muted mb-0">
+                    Пациент: <a href="{% url 'patients:detail' patient.pk %}">{{ patient.name }}</a>
+                </p>
+            </div>
+            <a href="{% url 'patients:add_weight' patient.pk %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Добави тегло
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Chart -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-graph-up me-2"></i>Графика на теглото
+                </div>
+                <div class="card-body">
+                    {% if chart_data %}
+                    <canvas id="weightChart" height="300"></canvas>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        Няма достатъчно данни за показване на графика.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Records List -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-list me-2"></i>Всички записи
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Тегло</th>
+                                    <th>От</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in weight_records %}
+                                <tr>
+                                    <td>{{ record.recorded_at|date:"d.m.Y" }}</td>
+                                    <td><strong>{{ record.weight }} кг</strong></td>
+                                    <td class="small text-muted">{{ record.recorded_by.get_full_name|default:record.recorded_by.username|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">Няма записи за теглото</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if chart_data %}
+<script>
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    const chartData = {{ chart_data|safe }};
+
+    const labels = chartData.map(d => {
+        const date = new Date(d.recorded_at);
+        return date.toLocaleDateString('bg-BG', { month: 'short', day: 'numeric', year: 'numeric' });
+    });
+    const weights = chartData.map(d => parseFloat(d.weight));
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Тегло (кг)',
+                data: weights,
+                borderColor: '#2E7D32',
+                backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Тегло (кг)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Дата'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

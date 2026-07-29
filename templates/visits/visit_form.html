@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="bi bi-calendar-{% if visit %}check{% else %}plus{% endif %} me-2"></i>{{ title }}</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Help text for search -->
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Съвет:</strong> Започнете да пишете в полето "Пациент" за търсене по име на пациент, собственик или микрочип.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Запази
+                            </button>
+                            <a href="{% if visit %}{% url 'visits:detail' visit.pk %}{% else %}{% url 'visits:list' %}{% endif %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Отказ
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning me-2"></i>Бързи действия
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'patients:create' %}" class="btn btn-outline-primary" target="_blank">
+                            <i class="bi bi-heart-pulse me-2"></i>Добави нов пациент
+                        </a>
+                        <a href="{% url 'clients:create' %}" class="btn btn-outline-secondary" target="_blank">
+                            <i class="bi bi-person-plus me-2"></i>Добави нов клиент
+                        </a>
+                    </div>
+                    <hr>
+                    <p class="small text-muted mb-0">
+                        <i class="bi bi-lightbulb me-1"></i>
+                        Ако пациентът или клиентът не съществуват, първо ги добавете чрез бутоните по-горе.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}История на рецептите - {{ patient.name }} - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1><i class="bi bi-capsule me-2"></i>История на рецептите</h1>
+                <p class="text-muted mb-0">
+                    Пациент: <a href="{% url 'patients:detail' patient.pk %}">{{ patient.name }}</a>
+                </p>
+            </div>
+            <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Обратно към пациента
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Медикамент</th>
+                            <th>Дозировка</th>
+                            <th>Честота</th>
+                            <th>Продължителност</th>
+                            <th>Предписано от</th>
+                            <th>Преглед</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prescription in prescriptions %}
+                        <tr>
+                            <td>{{ prescription.prescribed_at|date:"d.m.Y" }}</td>
+                            <td><strong>{{ prescription.medication }}</strong></td>
+                            <td>{{ prescription.dosage }}</td>
+                            <td>{{ prescription.frequency }}</td>
+                            <td>{{ prescription.duration }}</td>
+                            <td>{{ prescription.prescribed_by.get_full_name|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'visits:detail' prescription.visit.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% if prescription.instructions %}
+                        <tr>
+                            <td colspan="7" class="small text-muted bg-light">
+                                <i class="bi bi-info-circle me-1"></i>{{ prescription.instructions }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Няма записани рецепти за този пациент</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

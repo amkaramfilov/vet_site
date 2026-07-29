@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ patient.name }} - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center">
+                {% if patient.photo %}
+                <img src="{{ patient.photo.url }}" alt="{{ patient.name }}" class="patient-photo me-3">
+                {% else %}
+                <div class="patient-photo me-3 bg-light d-flex align-items-center justify-content-center">
+                    <i class="bi bi-heart display-6 text-muted"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <h1 class="mb-0">{{ patient.name }}</h1>
+                    <p class="text-muted mb-0">
+                        {{ patient.species }}{% if patient.breed %} - {{ patient.breed }}{% endif %}
+                        | Собственик: <a href="{% url 'clients:detail' patient.owner.pk %}">{{ patient.owner.name }}</a>
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'visits:create' %}?patient={{ patient.pk }}" class="btn btn-primary">
+                    <i class="bi bi-calendar-plus me-1"></i>Нов преглед
+                </a>
+                <a href="{% url 'patients:add_weight' patient.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-speedometer me-1"></i>Добави тегло
+                </a>
+                <a href="{% url 'patients:update' patient.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i>Редакция
+                </a>
+                <a href="{% url 'patients:delete' patient.pk %}" class="btn btn-outline-danger">
+                    <i class="bi bi-trash me-1"></i>Изтрий
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Patient Info -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>Информация за пациента
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Вид</div>
+                        <div class="col-7">{{ patient.species }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Порода</div>
+                        <div class="col-7">{{ patient.breed|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Пол</div>
+                        <div class="col-7">{{ patient.get_gender_display }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Възраст</div>
+                        <div class="col-7">{{ patient.age|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Дата на раждане</div>
+                        <div class="col-7">{{ patient.date_of_birth|date:"d.m.Y"|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Цвят</div>
+                        <div class="col-7">{{ patient.color|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Микрочип</div>
+                        <div class="col-7">{{ patient.microchip_number|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Текущо тегло</div>
+                        <div class="col-7">{% if patient.current_weight %}{{ patient.current_weight }} кг{% else %}-{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medical Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-heart-pulse me-2"></i>Медицинска информация
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="small text-muted">Алергии</label>
+                        <p class="mb-0">{{ patient.allergies|default:"Няма записани"|linebreaksbr }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted">Хронични заболявания</label>
+                        <p class="mb-0">{{ patient.chronic_conditions|default:"Няма записани"|linebreaksbr }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted">Последно обезпаразитяване</label>
+                        {% if last_deworming %}
+                        <p class="mb-0">
+                            <span class="fw-bold text-success">{{ last_deworming.administered_at|date:"d.m.Y" }}</span>
+                            - {{ last_deworming.product_name }}
+                            {% if last_deworming.next_due_date %}
+                            <br><small class="text-muted">Следващо: {{ last_deworming.next_due_date|date:"d.m.Y" }}</small>
+                            {% endif %}
+                        </p>
+                        {% else %}
+                        <p class="mb-0 text-muted">Няма записи</p>
+                        {% endif %}
+                    </div>
+                    {% if patient.notes %}
+                    <div>
+                        <label class="small text-muted">Бележки</label>
+                        <p class="mb-0">{{ patient.notes|linebreaksbr }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Vaccinations -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-shield-check me-2"></i>Ваксинации</span>
+                    <a href="{% url 'visits:vaccination_history' patient.pk %}" class="btn btn-sm btn-outline-primary">Виж всички</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if vaccinations %}
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Ваксина</th>
+                                <th>Следваща</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vax in vaccinations %}
+                            <tr>
+                                <td>{{ vax.administered_at|date:"d.m.Y" }}</td>
+                                <td>{{ vax.vaccine_name }}</td>
+                                <td>{{ vax.next_due_date|date:"d.m.Y"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        Няма записани ваксинации.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Weight History -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-speedometer me-2"></i>История на теглото</span>
+                    <a href="{% url 'patients:weight_history' patient.pk %}" class="btn btn-sm btn-outline-primary">Виж всички</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if weight_history %}
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Тегло</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in weight_history %}
+                            <tr>
+                                <td>{{ record.recorded_at|date:"d.m.Y" }}</td>
+                                <td>{{ record.weight }} кг</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        Няма записи за теглото.
+                        <a href="{% url 'patients:add_weight' patient.pk %}">Добави първи запис</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Visit History -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-calendar-check me-2"></i>История на прегледите</span>
+                    <a href="{% url 'visits:create' %}?patient={{ patient.pk }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Нов преглед
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if visits %}
+                    <div class="visit-history-list">
+                        {% for visit in visits %}
+                        <div class="visit-history-item border-bottom p-3 {% if forloop.last %}border-bottom-0{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-bold text-primary">{{ visit.date|date:"d.m.Y H:i" }}</span>
+                                    <span class="badge status-{{ visit.status }} ms-2">{{ visit.get_status_display }}</span>
+                                </div>
+                                <a href="{% url 'visits:detail' visit.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>Детайли
+                                </a>
+                            </div>
+                            <div class="mb-2">
+                                <strong><i class="bi bi-chat-left-text me-1"></i>Причина:</strong>
+                                <span>{{ visit.reason }}</span>
+                            </div>
+                            {% if visit.exam_notes %}
+                            {% with exam_notes=visit.exam_notes %}
+                            {% if exam_notes.diagnosis %}
+                            <div class="mb-2">
+                                <strong><i class="bi bi-clipboard-pulse me-1"></i>Диагноза:</strong>
+                                <span>{{ exam_notes.diagnosis|truncatewords:20 }}</span>
+                            </div>
+                            {% endif %}
+                            {% if exam_notes.treatment_plan %}
+                            <div class="mb-2 small text-muted">
+                                <strong><i class="bi bi-bandaid me-1"></i>Лечение:</strong>
+                                <span>{{ exam_notes.treatment_plan|truncatewords:15 }}</span>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            {% endif %}
+                            <div class="small text-muted mt-2">
+                                <i class="bi bi-person me-1"></i>Ветеринар: {{ visit.veterinarian.get_full_name|default:visit.veterinarian.username }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar display-4 d-block mb-2"></i>
+                        Няма записани прегледи.
+                        <a href="{% url 'visits:create' %}?patient={{ patient.pk }}">Насрочи първи преглед</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}История на обезпаразитяванията - {{ patient.name }} - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1><i class="bi bi-bug me-2"></i>История на обезпаразитяванията</h1>
+                <p class="text-muted mb-0">
+                    Пациент: <a href="{% url 'patients:detail' patient.pk %}">{{ patient.name }}</a>
+                </p>
+            </div>
+            <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Обратно към пациента
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Препарат</th>
+                            <th>Доза</th>
+                            <th>Партиден №</th>
+                            <th>Производител</th>
+                            <th>Следваща дата</th>
+                            <th>Приложено от</th>
+                            <th>Преглед</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deworming in dewormings %}
+                        <tr>
+                            <td>{{ deworming.administered_at|date:"d.m.Y" }}</td>
+                            <td><strong>{{ deworming.product_name }}</strong></td>
+                            <td>{{ deworming.dose|default:"-" }}</td>
+                            <td>{{ deworming.batch_number|default:"-" }}</td>
+                            <td>{{ deworming.manufacturer|default:"-" }}</td>
+                            <td>
+                                {% if deworming.next_due_date %}
+                                <span class="{% if deworming.next_due_date < today %}text-danger{% endif %}">
+                                    {{ deworming.next_due_date|date:"d.m.Y" }}
+                                </span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ deworming.administered_by.get_full_name|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'visits:detail' deworming.visit.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">Няма записани обезпаразитявания за този пациент</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

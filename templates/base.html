@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VetPlus{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'core:dashboard' %}">
+                <i class="bi bi-heart-pulse me-2"></i>VetPlus
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.app_name == 'core' %}active{% endif %}" href="{% url 'core:dashboard' %}">
+                            <i class="bi bi-house me-1"></i>Начало
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.app_name == 'clients' %}active{% endif %}" href="{% url 'clients:list' %}">
+                            <i class="bi bi-people me-1"></i>Клиенти
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.app_name == 'patients' %}active{% endif %}" href="{% url 'patients:list' %}">
+                            <i class="bi bi-heart me-1"></i>Пациенти
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.app_name == 'visits' %}active{% endif %}" href="{% url 'visits:list' %}">
+                            <i class="bi bi-calendar-check me-1"></i>Прегледи
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>{{ user.get_full_name|default:user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>Профил</a></li>
+                            {% if user.is_admin %}
+                            <li><a class="dropdown-item" href="{% url 'accounts:staff_list' %}"><i class="bi bi-people me-2"></i>Персонал</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Изход</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container-fluid mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="{% if user.is_authenticated %}py-4{% endif %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% if user.is_authenticated %}
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">&copy; {% now "Y" %} VetPlus - Ветеринарна клиника</span>
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- jQuery (required for Select2) -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Initialize Select2 for search fields -->
+    <script>
+        $(document).ready(function() {
+            // Common Select2 language settings
+            var select2Language = {
+                inputTooShort: function() {
+                    return 'Въведете поне 2 символа за търсене...';
+                },
+                noResults: function() {
+                    return 'Няма намерени резултати';
+                },
+                searching: function() {
+                    return 'Търсене...';
+                }
+            };
+
+            // Initialize Select2 for client-select fields with AJAX search
+            $('.client-select').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Търсене на клиент...',
+                allowClear: true,
+                minimumInputLength: 2,
+                language: select2Language,
+                ajax: {
+                    url: '/clients/search/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data.results.map(function(item) {
+                                return {
+                                    id: item.id,
+                                    text: item.text
+                                };
+                            })
+                        };
+                    },
+                    cache: true
+                }
+            });
+
+            // Initialize Select2 for patient-select fields with AJAX search
+            $('.patient-select').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Търсене на пациент...',
+                allowClear: true,
+                minimumInputLength: 2,
+                language: select2Language,
+                ajax: {
+                    url: '/patients/search/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function(data) {
+                        return {
+                            results: data.results.map(function(item) {
+                                return {
+                                    id: item.id,
+                                    text: item.text
+                                };
+                            })
+                        };
+                    },
+                    cache: true
+                }
+            });
+
+            // Generic autocomplete function for text fields
+            function initAutocomplete(selector, url) {
+                $(selector).each(function() {
+                    var $input = $(this);
+                    var autocompleteUrl = $input.data('autocomplete-url') || url;
+
+                    // Create datalist for suggestions
+                    var datalistId = 'datalist-' + Math.random().toString(36).substr(2, 9);
+                    var $datalist = $('<datalist id="' + datalistId + '"></datalist>');
+                    $input.after($datalist);
+                    $input.attr('list', datalistId);
+
+                    // Fetch suggestions on input
+                    $input.on('input', function() {
+                        var query = $(this).val();
+                        if (query.length >= 1) {
+                            $.ajax({
+                                url: autocompleteUrl,
+                                data: { q: query },
+                                success: function(data) {
+                                    $datalist.empty();
+                                    data.results.forEach(function(item) {
+                                        $datalist.append('<option value="' + item + '">');
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            // Initialize autocomplete for species, breed, and manipulation fields
+            initAutocomplete('.species-autocomplete', '/patients/species-autocomplete/');
+            initAutocomplete('.breed-autocomplete', '/patients/breed-autocomplete/');
+            initAutocomplete('.manipulation-autocomplete', '/visits/manipulation-autocomplete/');
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

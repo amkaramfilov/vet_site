@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}История на ваксинациите - {{ patient.name }} - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1><i class="bi bi-shield-plus me-2"></i>История на ваксинациите</h1>
+                <p class="text-muted mb-0">
+                    Пациент: <a href="{% url 'patients:detail' patient.pk %}">{{ patient.name }}</a>
+                </p>
+            </div>
+            <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Обратно към пациента
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Ваксина</th>
+                            <th>Партиден №</th>
+                            <th>Производител</th>
+                            <th>Следваща дата</th>
+                            <th>Приложена от</th>
+                            <th>Преглед</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vaccination in vaccinations %}
+                        <tr>
+                            <td>{{ vaccination.administered_at|date:"d.m.Y" }}</td>
+                            <td><strong>{{ vaccination.vaccine_name }}</strong></td>
+                            <td>{{ vaccination.batch_number|default:"-" }}</td>
+                            <td>{{ vaccination.manufacturer|default:"-" }}</td>
+                            <td>
+                                {% if vaccination.next_due_date %}
+                                <span class="{% if vaccination.next_due_date < today %}text-danger{% endif %}">
+                                    {{ vaccination.next_due_date|date:"d.m.Y" }}
+                                </span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ vaccination.administered_by.get_full_name|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'visits:detail' vaccination.visit.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Няма записани ваксинации за този пациент</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

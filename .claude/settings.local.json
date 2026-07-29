@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd /c \"cd /d c:\\Users\\amkar\\Desktop\\vet_site && poetry env use 3.12\")",
+      "Bash(powershell -Command \"cd ''c:\\Users\\amkar\\Desktop\\vet_site''; poetry env use 3.12\")",
+      "Bash(\"C:\\Users\\amkar\\AppData\\Local\\Programs\\Python\\Python312\\Scripts\\poetry.exe\" add --group prod gunicorn whitenoise)",
+      "Bash(\".venv\\Scripts\\python.exe\" manage.py makemigrations)",
+      "Bash(\".venv\\Scripts\\python.exe\" manage.py makemigrations accounts clients patients visits)",
+      "Bash(\".venv\\Scripts\\python.exe\" manage.py migrate)"
+    ]
+  }
+}

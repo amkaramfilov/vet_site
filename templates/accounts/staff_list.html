@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление на персонала - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h1><i class="bi bi-people me-2"></i>Управление на персонала</h1>
+            <a href="{% url 'accounts:staff_create' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus me-1"></i>Добави служител
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Име</th>
+                            <th>Потребител</th>
+                            <th>Имейл</th>
+                            <th>Роля</th>
+                            <th>Телефон</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in staff %}
+                        <tr>
+                            <td>{{ member.get_full_name|default:"-" }}</td>
+                            <td>{{ member.username }}</td>
+                            <td>{{ member.email|default:"-" }}</td>
+                            <td>
+                                <span class="badge {% if member.role == 'admin' %}bg-danger{% else %}bg-primary{% endif %}">
+                                    {{ member.get_role_display }}
+                                </span>
+                            </td>
+                            <td>{{ member.phone|default:"-" }}</td>
+                            <td>
+                                {% if member.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'accounts:staff_update' member.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if member != request.user %}
+                                <a href="{% url 'accounts:staff_delete' member.pk %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Няма намерени служители</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

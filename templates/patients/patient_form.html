@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1><i class="bi bi-heart-{% if patient %}gear{% else %}pulse{% endif %} me-2"></i>{{ title }}</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Link to create new client -->
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Не намирате собственика?
+                        <a href="{% url 'clients:create' %}" class="alert-link" target="_blank">
+                            <i class="bi bi-plus-circle me-1"></i>Добавете нов клиент
+                        </a>
+                        и после опреснете тази страница.
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Запази
+                            </button>
+                            <a href="{% if patient %}{% url 'patients:detail' patient.pk %}{% else %}{% url 'patients:list' %}{% endif %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Отказ
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning me-2"></i>Бързи действия
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'clients:create' %}" class="btn btn-outline-primary" target="_blank">
+                            <i class="bi bi-person-plus me-2"></i>Добави нов клиент
+                        </a>
+                        <a href="{% url 'clients:list' %}" class="btn btn-outline-secondary" target="_blank">
+                            <i class="bi bi-people me-2"></i>Виж всички клиенти
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

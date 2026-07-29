@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Начало - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h1><i class="bi bi-house me-2"></i>Начало</h1>
+            <div class="quick-actions">
+                <a href="{% url 'clients:create' %}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-1"></i>Нов клиент
+                </a>
+                <a href="{% url 'patients:create' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-heart-pulse me-1"></i>Нов пациент
+                </a>
+                <a href="{% url 'visits:create' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-calendar-plus me-1"></i>Нов преглед
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-people"></i></div>
+                <div class="stat-number">{{ total_clients }}</div>
+                <div class="stat-label">Общо клиенти</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-heart"></i></div>
+                <div class="stat-number">{{ total_patients }}</div>
+                <div class="stat-label">Общо пациенти</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+                <div class="stat-number">{{ today_visits }}</div>
+                <div class="stat-label">Днешни прегледи</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                <div class="stat-number">{{ pending_visits }}</div>
+                <div class="stat-label">Предстоящи прегледи</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Visits -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-calendar-check me-2"></i>Последни прегледи</span>
+                    <a href="{% url 'visits:list' %}" class="btn btn-sm btn-outline-primary">Виж всички</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Пациент</th>
+                                    <th>Причина</th>
+                                    <th>Статус</th>
+                                    <th>Действие</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visit in recent_visits %}
+                                <tr>
+                                    <td>{{ visit.date|date:"d.m.Y" }}</td>
+                                    <td>{{ visit.patient.name }}</td>
+                                    <td>{{ visit.reason|truncatewords:5 }}</td>
+                                    <td>
+                                        <span class="badge status-{{ visit.status }}">{{ visit.get_status_display }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'visits:detail' visit.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">Няма последни прегледи</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Patients -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-heart me-2"></i>Последни пациенти</span>
+                    <a href="{% url 'patients:list' %}" class="btn btn-sm btn-outline-primary">Виж всички</a>
+                </div>
+                <div class="card-body">
+                    {% for patient in recent_patients %}
+                    <div class="d-flex align-items-center mb-3 {% if not forloop.last %}pb-3 border-bottom{% endif %}">
+                        {% if patient.photo %}
+                        <img src="{{ patient.photo.url }}" alt="{{ patient.name }}" class="patient-photo-sm me-3">
+                        {% else %}
+                        <div class="patient-photo-sm me-3 bg-light rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-heart text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <a href="{% url 'patients:detail' patient.pk %}" class="fw-semibold text-decoration-none">{{ patient.name }}</a>
+                            <div class="small text-muted">{{ patient.species }} - {{ patient.owner.name }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted mb-0">Няма пациенти</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

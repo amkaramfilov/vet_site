@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block title %}Преглед - {{ visit.patient.name }} - VetPlus{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1><i class="bi bi-calendar-check me-2"></i>Детайли на прегледа</h1>
+                <p class="text-muted mb-0">
+                    Пациент: <a href="{% url 'patients:detail' visit.patient.pk %}">{{ visit.patient.name }}</a>
+                    | Собственик: <a href="{% url 'clients:detail' visit.patient.owner.pk %}">{{ visit.patient.owner.name }}</a>
+                </p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge status-{{ visit.status }} fs-6 py-2 px-3">{{ visit.get_status_display }}</span>
+                <a href="{% url 'visits:update' visit.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i>Редакция
+                </a>
+                <a href="{% url 'visits:delete' visit.pk %}" class="btn btn-outline-danger">
+                    <i class="bi bi-trash me-1"></i>Изтрий
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Visit Info -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>Информация за прегледа
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Дата</div>
+                        <div class="col-7">{{ visit.date|date:"d.m.Y H:i" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Причина</div>
+                        <div class="col-7">{{ visit.reason }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Ветеринар</div>
+                        <div class="col-7">{{ visit.veterinarian.get_full_name|default:visit.veterinarian.username|default:"-" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">Статус</div>
+                        <div class="col-7">
+                            <span class="badge status-{{ visit.status }}">{{ visit.get_status_display }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-lightning me-2"></i>Добави записи
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'visits:add_exam_notes' visit.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-clipboard-pulse me-2"></i>{% if exam_notes %}Редактирай{% else %}Добави{% endif %} бележки от прегледа
+                        </a>
+                        <a href="{% url 'visits:add_manipulation' visit.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-bandaid me-2"></i>Добави манипулация
+                        </a>
+                        <a href="{% url 'visits:add_vaccination' visit.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-shield-plus me-2"></i>Добави ваксина
+                        </a>
+                        <a href="{% url 'visits:add_prescription' visit.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-capsule me-2"></i>Добави рецепта
+                        </a>
+                        <a href="{% url 'visits:add_lab_result' visit.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-medical me-2"></i>Добави лабораторен резултат
+                        </a>
+                        <a href="{% url 'visits:add_deworming' visit.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-bug me-2"></i>Добави обезпаразитяване
+                        </a>
+                        <a href="{% url 'visits:add_attachment' visit.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-paperclip me-2"></i>Добави прикачен файл
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Records -->
+        <div class="col-lg-8">
+            <!-- Exam Notes -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clipboard-pulse me-2"></i>Бележки от прегледа</span>
+                    <a href="{% url 'visits:add_exam_notes' visit.pk %}" class="btn btn-sm btn-outline-primary">
+                        {% if exam_notes %}<i class="bi bi-pencil"></i>{% else %}<i class="bi bi-plus-lg"></i>{% endif %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if exam_notes %}
+                    <div class="row g-3">
+                        {% if exam_notes.temperature or exam_notes.heart_rate or exam_notes.respiratory_rate %}
+                        <div class="col-12">
+                            <div class="d-flex gap-4 flex-wrap mb-3">
+                                {% if exam_notes.temperature %}
+                                <div><strong>Температура:</strong> {{ exam_notes.temperature }}°C</div>
+                                {% endif %}
+                                {% if exam_notes.heart_rate %}
+                                <div><strong>Сърдечен ритъм:</strong> {{ exam_notes.heart_rate }} уд/мин</div>
+                                {% endif %}
+                                {% if exam_notes.respiratory_rate %}
+                                <div><strong>Дихателна честота:</strong> {{ exam_notes.respiratory_rate }} вдишвания/мин</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if exam_notes.symptoms %}
+                        <div class="col-md-6">
+                            <label class="small text-muted">Симптоми</label>
+                            <p class="mb-0">{{ exam_notes.symptoms|linebreaksbr }}</p>
+                        </div>
+                        {% endif %}
+                        {% if exam_notes.diagnosis %}
+                        <div class="col-md-6">
+                            <label class="small text-muted">Диагноза</label>
+                            <p class="mb-0">{{ exam_notes.diagnosis|linebreaksbr }}</p>
+                        </div>
+                        {% endif %}
+                        {% if exam_notes.treatment_plan %}
+                        <div class="col-md-6">
+                            <label class="small text-muted">План за лечение</label>
+                            <p class="mb-0">{{ exam_notes.treatment_plan|linebreaksbr }}</p>
+                        </div>
+                        {% endif %}
+                        {% if exam_notes.follow_up_notes %}
+                        <div class="col-md-6">
+                            <label class="small text-muted">Бележки за контролен преглед</label>
+                            <p class="mb-0">{{ exam_notes.follow_up_notes|linebreaksbr }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0 text-center">Няма бележки от прегледа.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Manipulations -->
+            {% if manipulations %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-bandaid me-2"></i>Манипулации/Процедури
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Процедура</th>
+                                <th>Описание</th>
+                                <th>Извършена от</th>
+                                <th>Час</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for manipulation in manipulations %}
+                            <tr>
+                                <td><strong>{{ manipulation.name }}</strong></td>
+                                <td>{{ manipulation.description|truncatewords:10|default:"-" }}</td>
+                                <td>{{ manipulation.performed_by.get_full_name|default:"-" }}</td>
+                                <td>{{ manipulation.performed_at|date:"H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Vaccinations -->
+            {% if vaccinations %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-shield-plus me-2"></i>Ваксинации
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ваксина</th>
+                                <th>Партиден №</th>
+                                <th>Следваща дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vaccination in vaccinations %}
+                            <tr>
+                                <td><strong>{{ vaccination.vaccine_name }}</strong></td>
+                                <td>{{ vaccination.batch_number|default:"-" }}</td>
+                                <td>{{ vaccination.next_due_date|date:"d.m.Y"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Prescriptions -->
+            {% if prescriptions %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-capsule me-2"></i>Рецепти
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Медикамент</th>
+                                <th>Дозировка</th>
+                                <th>Честота</th>
+                                <th>Продължителност</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in prescriptions %}
+                            <tr>
+                                <td><strong>{{ prescription.medication }}</strong></td>
+                                <td>{{ prescription.dosage }}</td>
+                                <td>{{ prescription.frequency }}</td>
+                                <td>{{ prescription.duration }}</td>
+                            </tr>
+                            {% if prescription.instructions %}
+                            <tr>
+                                <td colspan="4" class="small text-muted bg-light">
+                                    <i class="bi bi-info-circle me-1"></i>{{ prescription.instructions }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Lab Results -->
+            {% if lab_results %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-file-earmark-medical me-2"></i>Лабораторни резултати
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for result in lab_results %}
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6><i class="bi bi-file-earmark me-2"></i>{{ result.title }}</h6>
+                                {% if result.description %}
+                                <p class="small text-muted mb-2">{{ result.description }}</p>
+                                {% endif %}
+                                <a href="{{ result.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download me-1"></i>Виж файл
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Dewormings -->
+            {% if dewormings %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-bug me-2"></i>Обезпаразитявания
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Препарат</th>
+                                <th>Доза</th>
+                                <th>Партиден №</th>
+                                <th>Следваща дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for deworming in dewormings %}
+                            <tr>
+                                <td><strong>{{ deworming.product_name }}</strong></td>
+                                <td>{{ deworming.dose|default:"-" }}</td>
+                                <td>{{ deworming.batch_number|default:"-" }}</td>
+                                <td>{{ deworming.next_due_date|date:"d.m.Y"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Attachments -->
+            {% if attachments %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-paperclip me-2"></i>Прикачени файлове
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for attachment in attachments %}
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6><i class="bi bi-file-earmark me-2"></i>{{ attachment.title }}</h6>
+                                {% if attachment.description %}
+                                <p class="small text-muted mb-2">{{ attachment.description }}</p>
+                                {% endif %}
+                                <a href="{{ attachment.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download me-1"></i>Виж файл
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Visit Log/History -->
+            {% if visit_logs %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-clock-history me-2"></i>Дневник на прегледа
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for log in visit_logs %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-secondary me-2">{{ log.get_action_display }}</span>
+                                    <span>{{ log.description }}</span>
+                                </div>
+                                <small class="text-muted">{{ log.created_at|date:"d.m.Y H:i" }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
